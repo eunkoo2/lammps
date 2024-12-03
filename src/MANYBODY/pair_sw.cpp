@@ -413,17 +413,26 @@ void PairSW::read_file(char *file)
         params[nparams].ielement = ielement;
         params[nparams].jelement = jelement;
         params[nparams].kelement = kelement;
-        params[nparams].epsilon  = values.next_double();
-        params[nparams].sigma    = values.next_double();
-        params[nparams].littlea  = values.next_double();
-        params[nparams].lambda   = values.next_double();
+        params[nparams].epsilon  = values.next_double(); 
+        params[nparams].sigma    = values.next_double(); 
+        params[nparams].littlea  = values.next_double(); 
+        params[nparams].lambda   = values.next_double(); 
         params[nparams].gamma    = values.next_double();
-        params[nparams].costheta = values.next_double();
-        params[nparams].biga     = values.next_double();
-        params[nparams].bigb     = values.next_double();
-        params[nparams].powerp   = values.next_double();
-        params[nparams].powerq   = values.next_double();
-        params[nparams].tol      = values.next_double();
+        params[nparams].costheta = values.next_double(); 
+        params[nparams].biga     = values.next_double(); 
+        params[nparams].bigb     = values.next_double(); 
+        params[nparams].powerp   = values.next_double(); 
+        params[nparams].powerq   = values.next_double(); 
+        params[nparams].tol      = values.next_double(); 
+        params[nparams].La      = values.next_double(); 
+        params[nparams].Lb      = values.next_double(); 
+        params[nparams].Ld      = values.next_double(); 
+        params[nparams].Lk      = values.next_double(); 
+        params[nparams].Lgamma   = values.next_double(); 
+        params[nparams].Lrmin   = values.next_double(); 
+        params[nparams].Lemin   = values.next_double(); 
+        
+        params[nparams].powerp   = 2 * params[nparams].powerq; 
       } catch (TokenizerException &e) {
         error->one(FLERR, e.what());
       }
@@ -495,7 +504,7 @@ void PairSW::setup_params()
   // (cut = a*sigma)
 
   for (m = 0; m < nparams; m++) {
-    params[m].cut = params[m].sigma*params[m].littlea;
+    params[m].cut = params[m].littlea;
 
     rtmp = params[m].cut;
     if (params[m].tol > 0.0) {
@@ -509,8 +518,8 @@ void PairSW::setup_params()
     params[m].cutsq = rtmp * rtmp;
 
     params[m].sigma_gamma = params[m].sigma*params[m].gamma;
-    params[m].lambda_epsilon = params[m].lambda*params[m].epsilon;
-    params[m].lambda_epsilon2 = 2.0*params[m].lambda*params[m].epsilon;
+    params[m].lambda_epsilon = params[m].lambda;
+    params[m].lambda_epsilon2 = 2.0*params[m].lambda;
     params[m].c1 = params[m].biga*params[m].epsilon *
       params[m].powerp*params[m].bigb *
       pow(params[m].sigma,params[m].powerp);
@@ -540,18 +549,33 @@ void PairSW::setup_params()
 void PairSW::twobody(Param *param, double rsq, double &fforce,
                      int eflag, double &eng)
 {
-  double r,rinvsq,rp,rq,rainv,rainvsq,expsrainv;
+  double r,rinvsq,rp,rq,rq2,rainv,rainvsq,expsrainv,expsrainv2;
 
-  r = sqrt(rsq);
-  rinvsq = 1.0/rsq;
-  rp = pow(r,-param->powerp);
-  rq = pow(r,-param->powerq);
-  rainv = 1.0 / (r - param->cut);
-  rainvsq = rainv*rainv*r;
-  expsrainv = exp(param->sigma * rainv);
-  fforce = (param->c1*rp - param->c2*rq +
-            (param->c3*rp -param->c4*rq) * rainvsq) * expsrainv * rinvsq;
-  if (eflag) eng = (param->c5*rp - param->c6*rq) * expsrainv;
+  r = sqrt(rsq); 
+  rinvsq = 1.0/rsq; //
+  rp = pow(r,-param->powerp); // r^(-p)
+  rq = pow(r,-param->powerq); // r^(-q)
+  rq2 = pow(r,-param->powerq*2); // r^(-2q)
+  rainv = 1.0 / (r - param->cut); // 1/(r-rc)
+  rainvsq = rainv*rainv*r; // r/(r-rc)^2
+  expsrainv = exp(param->Ld * rainv); // e^(d/r-rc)
+  expsrainv2 = exp(2*param->Ld * rainv); // e^(2d/r-rc)
+
+  fforce = (
+    param->La * (
+        -2 * param->powerq * pow(r, -2 * param->powerq - 1) * exp(2 * param->Ld / (r - param->cut)) +
+        pow(r, -2 * param->powerq) * (-2 * param->Ld / pow(r - param->cut, 2)) * exp(2 * param->Ld / (r - param->cut))
+    ) - 
+    param->Lb * (
+        -param->powerq * pow(r, -param->powerq - 1) * exp(param->Ld / (r - param->cut)) +
+        pow(r, -param->powerq) * (-param->Ld / pow(r - param->cut, 2)) * exp(param->Ld / (r - param->cut))
+    )
+); 
+
+  //fforce = (param->c1*rp - param->c2*rq +
+  //          (param->c3*rp -param->c4*rq) * rainvsq) * expsrainv * rinvsq;
+  if (eflag) eng = (param->La*pow(r,-param->powerq*2))*exp(2*param->Ld * (1.0 / (r - param->cut))) - (param->Lb*pow(r,-param->powerq)) * exp(param->Ld * (1.0 / (r - param->cut)));
+  // energy=a*pow(r,-2q)*exp(2d*1.0/(r-rc)) - b*pow(r,-q)*exp(d*1.0/(r-rc))
 }
 
 /* ---------------------------------------------------------------------- */
@@ -563,37 +587,67 @@ void PairSW::threebody(Param *paramij, Param *paramik, Param *paramijk,
 {
   double r1,rinvsq1,rainv1,gsrainv1,gsrainvsq1,expgsrainv1;
   double r2,rinvsq2,rainv2,gsrainv2,gsrainvsq2,expgsrainv2;
-  double rinv12,cs,delcs,delcssq,facexp,facrad,frad1,frad2;
+  double rinv12,cs,delcs,delcssq,delcs_gamma,facexp,facrad,frad1,frad2;
   double facang,facang12,csfacang,csfac1,csfac2;
 
   r1 = sqrt(rsq1);
   rinvsq1 = 1.0/rsq1;
   rainv1 = 1.0/(r1 - paramij->cut);
-  gsrainv1 = paramij->sigma_gamma * rainv1;
+  gsrainv1 = paramij->Ld * rainv1;
   gsrainvsq1 = gsrainv1*rainv1/r1;
   expgsrainv1 = exp(gsrainv1);
+
+  double twobody_energy1 = 0.0;
+  double fforce1=0.0;
+  twobody(paramij, rsq1, fforce1, 1, twobody_energy1);
+
+  double expdd1;
+  if (r1 <= paramij->Lrmin) {
+    expdd1 = 1.0;
+  } else if (r1 >= paramij->littlea) {
+    expdd1 = 0.0;
+  } else {
+    expdd1 = twobody_energy1/paramij->Lemin;
+  }
+
+
 
   r2 = sqrt(rsq2);
   rinvsq2 = 1.0/rsq2;
   rainv2 = 1.0/(r2 - paramik->cut);
-  gsrainv2 = paramik->sigma_gamma * rainv2;
+  gsrainv2 = paramik->Ld * rainv2;
   gsrainvsq2 = gsrainv2*rainv2/r2;
   expgsrainv2 = exp(gsrainv2);
 
+  double twobody_energy2 = 0.0;
+  double fforce2=0.0;
+  twobody(paramik, rsq2, fforce2, 1, twobody_energy2);
+
+  double expdd2;
+  if (r2 <= paramik->Lrmin) {
+    expdd2 = 1.0;
+  } else if (r2 >= paramik->littlea) {
+    expdd2 = 0.0;
+  } else {
+    expdd2 = twobody_energy2/paramik->Lemin;
+  }
+
   rinv12 = 1.0/(r1*r2);
   cs = (delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2]) * rinv12;
-  delcs = cs - paramijk->costheta;
-  delcssq = delcs*delcs;
+  delcs = cs - paramijk->costheta; 
+  delcssq = delcs*delcs; 
+  delcs_gamma= pow(delcs, paramijk->Lgamma);
 
-  facexp = expgsrainv1*expgsrainv2;
+  facexp = expdd1*expdd2;
 
   // facrad = sqrt(paramij->lambda_epsilon*paramik->lambda_epsilon) *
   //          facexp*delcssq;
 
-  facrad = paramijk->lambda_epsilon * facexp*delcssq;
-  frad1 = facrad*gsrainvsq1;
-  frad2 = facrad*gsrainvsq2;
-  facang = paramijk->lambda_epsilon2 * facexp*delcs;
+  facrad = paramijk->Lk * delcs_gamma*facexp; 
+  frad1 = -(paramijk->Lk * delcs_gamma*expdd2*(fforce1/paramij->Lemin))/r1; 
+  frad2 = -(paramijk->Lk * delcs_gamma*expdd1*(fforce2/paramik->Lemin))/r2;
+  //facang = paramijk->lambda_epsilon2 * facexp*delcs; 
+  facang = paramijk->Lk*paramijk->Lgamma * facexp * pow(delcs, paramijk->Lgamma - 1);
   facang12 = rinv12*facang;
   csfacang = cs*facang;
   csfac1 = rinvsq1*csfacang;
