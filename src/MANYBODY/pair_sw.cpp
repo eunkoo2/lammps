@@ -646,7 +646,9 @@ r2 = sqrt(rsq2);
 
   rinv12 = 1.0/(r1*r2);
   cs = (delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2]) * rinv12;
-  delcs = cs - paramijk->costheta; 
+  //delcs = cs - paramijk->costheta; 
+  delcs=1.0;
+
   delcssq = delcs*delcs; 
   delcs_gamma= pow(delcs, paramijk->Lgamma);
 
