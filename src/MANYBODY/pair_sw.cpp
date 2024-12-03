@@ -590,50 +590,59 @@ void PairSW::threebody(Param *paramij, Param *paramik, Param *paramijk,
   double rinv12,cs,delcs,delcssq,delcs_gamma,facexp,facrad,frad1,frad2;
   double facang,facang12,csfacang,csfac1,csfac2;
 
-  r1 = sqrt(rsq1);
-  rinvsq1 = 1.0/rsq1;
-  rainv1 = 1.0/(r1 - paramij->cut);
-  gsrainv1 = paramij->Ld * rainv1;
-  gsrainvsq1 = gsrainv1*rainv1/r1;
-  expgsrainv1 = exp(gsrainv1);
+  if (rsq1 < 0) {
+    rsq1 = 0.0;  // 또는 오류 처리
+}
+r1 = sqrt(rsq1);
+
+  if (fabs(rsq1) < 1e-10) {  // 1e-10은 매우 작은 값으로, 필요에 따라 조정
+    rinvsq1 = 0.0;  // 또는 다른 적절한 값으로 설정
+} else {
+    rinvsq1 = 1.0 / rsq1;
+}
+  
 
   double twobody_energy1 = 0.0;
   double fforce1=0.0;
   Param *paramij1 = paramij;
   //twobody(&params[ijparam], rsq1, fforce1, 1, twobody_energy1);
-   twobody(paramij1, rsq1, fforce1, 1, twobody_energy1);
+   //twobody(paramij1, rsq1, fforce1, 1, twobody_energy1);
 
-  double expdd1;
-  if (r1 <= paramij->Lrmin) {
+ double expdd1=0.0;
+if (r1 <= paramij->Lrmin) {
     expdd1 = 1.0;
-  } else if (r1 >= paramij->littlea) {
+} else if (r1 >= paramij->littlea) {
     expdd1 = 0.0;
-  } else {
-    expdd1 = twobody_energy1/paramij->Lemin;
-  }
+} else {
+    // expdd1 = twobody_energy1 / paramij->Lemin;
+}
 
 
 
-  r2 = sqrt(rsq2);
-  rinvsq2 = 1.0/rsq2;
-  rainv2 = 1.0/(r2 - paramik->cut);
-  gsrainv2 = paramik->Ld * rainv2;
-  gsrainvsq2 = gsrainv2*rainv2/r2;
-  expgsrainv2 = exp(gsrainv2);
+  if (rsq2 < 0) {
+    rsq2 = 0.0;  // 또는 오류 처리
+}
+r2 = sqrt(rsq2);
+
+  if (fabs(rsq2) < 1e-10) {  // 1e-10은 매우 작은 값으로, 필요에 따라 조정
+    rinvsq2 = 0.0;  // 또는 다른 적절한 값으로 설정
+} else {
+    rinvsq2 = 1.0 / rsq2;
+}
 
   double twobody_energy2 = 0.0;
   double fforce2=0.0;
    Param *paramik2 = paramik;
-  twobody(paramik2, rsq2, fforce2, 1, twobody_energy2);
+  //twobody(paramik2, rsq2, fforce2, 1, twobody_energy2);
 
-  double expdd2;
+  double expdd2=0.0;
   if (r2 <= paramik->Lrmin) {
     expdd2 = 1.0;
-  } else if (r2 >= paramik->littlea) {
+} else if (r1 >= paramik->littlea) {
     expdd2 = 0.0;
-  } else {
-    expdd2 = twobody_energy2/paramik->Lemin;
-  }
+} else {
+    // expdd1 = twobody_energy1 / paramij->Lemin;
+}
 
   rinv12 = 1.0/(r1*r2);
   cs = (delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2]) * rinv12;
