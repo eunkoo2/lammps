@@ -626,10 +626,10 @@ rinvsq2 = 1.0 / rsq2;
   double expdd2=0.0;
   if (r2 <= paramik->Lrmin) {
     expdd2 = 1.0;
-} else if (r1 >= paramik->littlea) {
+} else if (r2 >= paramik->littlea) {
     expdd2 = 0.0;
 } else {
-     expdd1 = twobody_energy1 / paramij->Lemin;
+     expdd2 = twobody_energy2 / paramik->Lemin;
 }
 
   rinv12 = 1.0/(r1*r2);
