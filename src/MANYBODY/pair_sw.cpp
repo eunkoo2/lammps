@@ -561,7 +561,7 @@ void PairSW::twobody(Param *param, double rsq, double &fforce,
   expsrainv = exp(param->Ld * rainv); // e^(d/r-rc)
   expsrainv2 = exp(2*param->Ld * rainv); // e^(2d/r-rc)
 
-  fforce = (
+  fforce = -(
     param->La * (
         -2 * param->powerq * pow(r, -2 * param->powerq - 1) * exp(2 * param->Ld / (r - param->cut)) +
         pow(r, -2 * param->powerq) * (-2 * param->Ld / pow(r - param->cut, 2)) * exp(2 * param->Ld / (r - param->cut))
@@ -646,8 +646,8 @@ rinvsq2 = 1.0 / rsq2;
   //          facexp*delcssq;
 
   facrad = paramijk->Lk * delcs_gamma*facexp; 
-  frad1 = -(paramijk->Lk * delcs_gamma*expdd2*(fforce1/paramij->Lemin))/r1; 
-  frad2 = -(paramijk->Lk * delcs_gamma*expdd1*(fforce2/paramik->Lemin))/r2;
+  frad1 = (paramijk->Lk * delcs_gamma*expdd2*(fforce1/paramij->Lemin))/r1; 
+  frad2 = (paramijk->Lk * delcs_gamma*expdd1*(fforce2/paramik->Lemin))/r2;
   //facang = paramijk->lambda_epsilon2 * facexp*delcs; 
   facang = paramijk->Lk*paramijk->Lgamma * facexp * pow(delcs, paramijk->Lgamma - 1);
   facang12 = rinv12*facang;
