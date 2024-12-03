@@ -34,7 +34,7 @@ class PairSW : public Pair {
   void init_style() override;
   double single(int, int, int, int, double, double, double, double &) override;
 
-  static constexpr int NPARAMS_PER_LINE = 14;
+  static constexpr int NPARAMS_PER_LINE = 21; 
 
   struct Param {
     double epsilon, sigma;
@@ -45,6 +45,7 @@ class PairSW : public Pair {
     double cut, cutsq;
     double sigma_gamma, lambda_epsilon, lambda_epsilon2;
     double c1, c2, c3, c4, c5, c6;
+    double La, Lb, Ld, Lk, Lgamma, Lrmin, Lemin ; 
     int ielement, jelement, kelement;
   };
 
