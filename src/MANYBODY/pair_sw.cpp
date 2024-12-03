@@ -590,23 +590,17 @@ void PairSW::threebody(Param *paramij, Param *paramik, Param *paramijk,
   double rinv12,cs,delcs,delcssq,delcs_gamma,facexp,facrad,frad1,frad2;
   double facang,facang12,csfacang,csfac1,csfac2;
 
-  if (rsq1 < 0) {
-    rsq1 = 0.0;  // 또는 오류 처리
-}
+  
 r1 = sqrt(rsq1);
+rinvsq1 = 1.0 / rsq1;
 
-  if (fabs(rsq1) < 1e-10) {  // 1e-10은 매우 작은 값으로, 필요에 따라 조정
-    rinvsq1 = 0.0;  // 또는 다른 적절한 값으로 설정
-} else {
-    rinvsq1 = 1.0 / rsq1;
-}
   
 
   double twobody_energy1 = 0.0;
   double fforce1=0.0;
   Param *paramij1 = paramij;
   //twobody(&params[ijparam], rsq1, fforce1, 1, twobody_energy1);
-   //twobody(paramij1, rsq1, fforce1, 1, twobody_energy1);
+   twobody(paramij1, rsq1, fforce1, 1, twobody_energy1);
 
  double expdd1=0.0;
 if (r1 <= paramij->Lrmin) {
@@ -614,26 +608,20 @@ if (r1 <= paramij->Lrmin) {
 } else if (r1 >= paramij->littlea) {
     expdd1 = 0.0;
 } else {
-    // expdd1 = twobody_energy1 / paramij->Lemin;
+    expdd1 = twobody_energy1 / paramij->Lemin;
 }
 
 
 
-  if (rsq2 < 0) {
-    rsq2 = 0.0;  // 또는 오류 처리
-}
+
 r2 = sqrt(rsq2);
+rinvsq2 = 1.0 / rsq2;
 
-  if (fabs(rsq2) < 1e-10) {  // 1e-10은 매우 작은 값으로, 필요에 따라 조정
-    rinvsq2 = 0.0;  // 또는 다른 적절한 값으로 설정
-} else {
-    rinvsq2 = 1.0 / rsq2;
-}
 
   double twobody_energy2 = 0.0;
   double fforce2=0.0;
    Param *paramik2 = paramik;
-  //twobody(paramik2, rsq2, fforce2, 1, twobody_energy2);
+  twobody(paramik2, rsq2, fforce2, 1, twobody_energy2);
 
   double expdd2=0.0;
   if (r2 <= paramik->Lrmin) {
@@ -641,14 +629,14 @@ r2 = sqrt(rsq2);
 } else if (r1 >= paramik->littlea) {
     expdd2 = 0.0;
 } else {
-    // expdd1 = twobody_energy1 / paramij->Lemin;
+     expdd1 = twobody_energy1 / paramij->Lemin;
 }
 
   rinv12 = 1.0/(r1*r2);
   cs = (delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2]) * rinv12;
-  //delcs = cs - paramijk->costheta; 
-  delcs=1.0;
+  delcs = fabs(cs - paramijk->costheta); 
 
+  
   delcssq = delcs*delcs; 
   delcs_gamma= pow(delcs, paramijk->Lgamma);
 
