@@ -599,9 +599,9 @@ void PairSW::threebody(Param *paramij, Param *paramik, Param *paramijk,
 
   double twobody_energy1 = 0.0;
   double fforce1=0.0;
-  Param *paramij = &params[ijparam];
+  Param *paramij1 = paramij;
   //twobody(&params[ijparam], rsq1, fforce1, 1, twobody_energy1);
-   twobody(paramij, rsq1, fforce1, 1, twobody_energy1);
+   twobody(paramij1, rsq1, fforce1, 1, twobody_energy1);
 
   double expdd1;
   if (r1 <= paramij->Lrmin) {
@@ -623,8 +623,8 @@ void PairSW::threebody(Param *paramij, Param *paramik, Param *paramijk,
 
   double twobody_energy2 = 0.0;
   double fforce2=0.0;
-   Param *paramik = &params[ikparam];
-  twobody(paramik, rsq2, fforce2, 1, twobody_energy2);
+   Param *paramik2 = paramik;
+  twobody(paramik2, rsq2, fforce2, 1, twobody_energy2);
 
   double expdd2;
   if (r2 <= paramik->Lrmin) {
