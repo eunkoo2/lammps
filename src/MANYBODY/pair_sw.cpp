@@ -646,8 +646,8 @@ rinvsq2 = 1.0 / rsq2;
   //          facexp*delcssq;
 
   facrad = paramijk->Lk * delcs_gamma*facexp; 
-  frad1 = -(paramijk->Lk * delcs_gamma*expdd2*(fforce1/paramij->Lemin))/r1; 
-  frad2 = -(paramijk->Lk * delcs_gamma*expdd1*(fforce2/paramik->Lemin))/r2;
+  frad1 = (paramijk->Lk * delcs_gamma*expdd2*(fforce1/paramij->Lemin))/r1; 
+  frad2 = (paramijk->Lk * delcs_gamma*expdd1*(fforce2/paramik->Lemin))/r2;
   //facang = paramijk->lambda_epsilon2 * facexp*delcs; 
   facang = paramijk->Lk*paramijk->Lgamma * facexp * pow(delcs, paramijk->Lgamma - 1);
   facang12 = rinv12*facang;
